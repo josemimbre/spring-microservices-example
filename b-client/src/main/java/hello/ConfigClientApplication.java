@@ -1,5 +1,7 @@
 package hello;
 
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.netflix.ribbon.RibbonClient;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 @EnableDiscoveryClient
@@ -26,17 +29,25 @@ public class ConfigClientApplication {
 @RestController
 @RibbonClient(name = "a-bootiful-client")
 class MessageRestController {
+
+    @Value("${message:Hello default}")
+    private String message;
+
     @LoadBalanced
     @Bean
     RestTemplate restTemplate(){
-      return new RestTemplate();
+      return new RestTemplate() {{
+        setRequestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientBuilder
+          .create()
+          .setConnectionManager(new PoolingHttpClientConnectionManager() {{
+            setDefaultMaxPerRoute(20);
+            setMaxTotal(200);
+          }}).build()));
+      }};
     }
     
     @Autowired
     RestTemplate restTemplate;
-
-    @Value("${message:Hello default}")
-    private String message;
 
     @RequestMapping("/message")
     String getMessage() {

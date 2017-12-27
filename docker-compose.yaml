@@ -1,0 +1,40 @@
+version: '3'
+services:
+  eureka-service:
+    build: ./eureka-service
+    image: eureka-service:0.0.1
+    ports:
+     - "8761:8761"
+  configuration-service:
+    build: ./configuration-service
+    image: configuration-service:0.0.1
+    ports:
+     - "8888:8888"
+  a-client-1:
+    build: ./a-client
+    image: a-client-1:0.0.1
+    environment:
+      PROFILE: service1
+    ports:
+     - "8081:8081"
+    depends_on:
+      - eureka-service
+      - configuration-service
+  a-client-2:
+    build: ./a-client
+    image: a-client-2:0.0.1
+    environment:
+      PROFILE: service2
+    ports:
+     - "8082:8082"
+    depends_on:
+      - eureka-service
+      - configuration-service
+  b-client:
+    build: ./b-client
+    image: b-client:0.0.1
+    ports:
+     - "8080:8080"
+    depends_on:
+      - eureka-service
+      - configuration-service
