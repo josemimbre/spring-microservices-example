@@ -45,7 +45,7 @@ class MessageRestController {
           }}).build()));
       }};
     }
-    
+
     @Autowired
     RestTemplate restTemplate;
 
